@@ -39,6 +39,9 @@ func TestPacketConnReadWriteMulticastUDP(t *testing.T) {
 
 	for _, tt := range packetConnReadWriteMulticastUDPTests {
 		t.Run(fmt.Sprintf("addr=%s/grp=%s/src=%s", tt.addr, tt.grp, tt.src), func(t *testing.T) {
+			if tt.src != nil && runtime.GOOS == "linux" && ifi.Flags&net.FlagLoopback != 0 {
+				t.Skip("source-specific multicast over loopback delivers nothing on Linux CI runners; ReadFrom below has no deadline and blocks until the test binary times out")
+			}
 			c, err := net.ListenPacket("udp4", tt.addr)
 			if err != nil {
 				t.Fatal(err)
